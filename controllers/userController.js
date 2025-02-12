@@ -65,12 +65,11 @@ export const login = async (req, res) => {
 
         return res.status(200)
             .cookie("token", token, {
-                maxAge: 1 * 24 * 60 * 60 * 1000,
+                maxAge: 24 * 60 * 60 * 1000,
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
                 path: '/',
-                domain: '.onrender.com'
             })
             .json({
                 _id: user._id,
@@ -85,9 +84,17 @@ export const login = async (req, res) => {
 }
 export const logout = (req, res) => {
     try {
-        return res.status(200).cookie("token", "", { maxAge: 0 }).json({
-            message: "logged out successfully."
-        })
+        return res.status(200)
+            .cookie("token", "", {
+                maxAge: 0,
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                path: '/',
+            })
+            .json({
+                message: "logged out successfully."
+            });
     } catch (error) {
         console.log(error);
     }

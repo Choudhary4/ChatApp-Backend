@@ -24,8 +24,9 @@ const corsOptions = {
     "https://chatapp-frontend-one-mauve.vercel.app"
   ],
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  exposedHeaders: ["set-cookie"],
 };
 
 app.use(cors(corsOptions));
