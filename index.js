@@ -20,14 +20,12 @@ app.use(cookieParser());
 // ✅ Updated CORS Configuration
 const corsOptions = {
   origin: [
-    "http://localhost:3000", // Local frontend
-    "https://chatapp-frontend-one-mauve.vercel.app" // Production frontend
+    "http://localhost:3000",
+    "https://chatapp-frontend-one-mauve.vercel.app"
   ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true, // Allow cookies to be sent across domains
-  preflightContinue: false,
-  optionsSuccessStatus: 200,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
 };
 
 app.use(cors(corsOptions));

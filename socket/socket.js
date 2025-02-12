@@ -6,10 +6,15 @@ const app = express();
 
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors:'*',
-        methods:['GET', 'POST'],
+    cors: {
+        origin: [
+            "http://localhost:3000",
+            "https://chatapp-frontend-one-mauve.vercel.app"
+        ],
+        methods: ['GET', 'POST'],
+        credentials: true
     },
-);
+});
 
 export const getReceiverSocketId = (receiverId) => {
     return userSocketMap[receiverId];
