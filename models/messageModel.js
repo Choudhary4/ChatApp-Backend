@@ -13,7 +13,25 @@ const messageModel = new mongoose.Schema({
     },
     message:{
         type:String,
-        required:true
+        default: ""
+    },
+    messageType: {
+        type: String,
+        enum: ['text', 'image', 'audio', 'document'],
+        default: 'text'
+    },
+    fileUrl: {
+        type: String,
+        default: ""
+    },
+    status: {
+        type: String,
+        enum: ['sent', 'delivered', 'read'],
+        default: 'sent'
+    },
+    isEdited: {
+        type: Boolean,
+        default: false
     }
 },{timestamps:true});
 export const Message = mongoose.model("Message", messageModel);

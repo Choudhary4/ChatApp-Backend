@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/database.js";
 import userRoute from "./routes/userRoute.js";
 import messageRoute from "./routes/messageRoute.js";
+import statusRoute from "./routes/statusRoute.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { app, server } from "./socket/socket.js";
@@ -54,6 +55,7 @@ app.post("/api/v1/login", (req, res) => {
 // Routes
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/message", messageRoute);
+app.use("/api/v1/status", statusRoute);
 
 // Start Server & Connect to Database
 server.listen(PORT, async () => {

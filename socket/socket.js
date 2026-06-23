@@ -1,6 +1,7 @@
 import {Server} from "socket.io";
 import http from "http";
 import express from "express";
+import { Message } from "../models/messageModel.js";
 
 const app = express();
 
@@ -30,6 +31,36 @@ io.on('connection', (socket)=>{
     } 
 
     io.emit('getOnlineUsers',Object.keys(userSocketMap));
+
+    socket.on('typing', ({ senderId, receiverId }) => {
+        const receiverSocketId = getReceiverSocketId(receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit('typing', { senderId });
+        }
+    });
+
+    socket.on('stopTyping', ({ senderId, receiverId }) => {
+        const receiverSocketId = getReceiverSocketId(receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit('stopTyping', { senderId });
+        }
+    });
+
+    socket.on('markAsRead', async ({ senderId, receiverId }) => {
+        try {
+            await Message.updateMany(
+                { senderId: senderId, receiverId: receiverId, status: { $ne: 'read' } },
+                { $set: { status: 'read' } }
+            );
+            
+            const senderSocketId = getReceiverSocketId(senderId);
+            if (senderSocketId) {
+                io.to(senderSocketId).emit('messagesRead', { receiverId });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    });
 
     socket.on('disconnect', ()=>{
         delete userSocketMap[userId];
