@@ -5,21 +5,74 @@ import jwt from "jsonwebtoken";
 import { io, getReceiverSocketId } from "../socket/socket.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
+import nodemailer from "nodemailer";
+import { Otp } from "../models/otpModel.js";
+
+export const sendOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: "Email is required", success: false });
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json({ message: "Email is already registered", success: false });
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        await Otp.findOneAndUpdate(
+            { email },
+            { otp, createdAt: new Date() },
+            { upsert: true, new: true }
+        );
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
+
+        const mailOptions = {
+            from: process.env.FROM_EMAIL,
+            to: email,
+            subject: 'Your ChatApp OTP Verification Code',
+            text: `Your OTP for ChatApp registration is: ${otp}. It is valid for 5 minutes.`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ message: "OTP sent successfully", success: true });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Failed to send OTP", success: false });
+    }
+}
 
 export const register = async (req, res) => {
     try {
-        const { fullName, username, password, confirmPassword, gender } = req.body;
-        if (!fullName || !username || !password || !confirmPassword || !gender) {
+        const { fullName, username, password, confirmPassword, gender, email, otp } = req.body;
+        if (!fullName || !username || !password || !confirmPassword || !gender || !email || !otp) {
             return res.status(400).json({ message: "All fields are required" });
         }
         if (password !== confirmPassword) {
             return res.status(400).json({ message: "Password do not match" });
         }
 
+        const validOtp = await Otp.findOne({ email, otp });
+        if (!validOtp) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
         const user = await User.findOne({ username });
         if (user) {
             return res.status(400).json({ message: "Username already exit try different" });
         }
+        
+        const emailUser = await User.findOne({ email });
+        if (emailUser) {
+            return res.status(400).json({ message: "Email already registered" });
+        }
+        
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // profilePhoto
@@ -29,10 +82,13 @@ export const register = async (req, res) => {
         await User.create({
             fullName,
             username,
+            email,
             password: hashedPassword,
             profilePhoto: gender === "male" ? maleProfilePhoto : femaleProfilePhoto,
             gender
         });
+        
+        await Otp.deleteOne({ email });
         return res.status(201).json({
             message: "Account created successfully.",
             success: true

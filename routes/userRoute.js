@@ -1,10 +1,11 @@
 import express from "express";
-import { getOtherUsers, login, logout, register, editProfile, toggleBlockUser } from "../controllers/userController.js";
+import { getOtherUsers, login, logout, register, editProfile, toggleBlockUser, sendOtp } from "../controllers/userController.js";
 import isAuthenticated from "../middleware/isAuthenticated.js";
 import { upload } from "../middleware/multer.js";
 
 const router = express.Router();
 
+router.route("/send-otp").post(sendOtp);
 router.route("/register").post(register);
 router.route("/login").post(login);
 router.route("/logout").get(logout);
